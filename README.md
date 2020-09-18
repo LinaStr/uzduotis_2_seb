@@ -18,7 +18,7 @@ Server Build      | Maven
 ### Prerequisites
 -  Install Java 11 from the OpenJDK
 -  Install Node.js from the Node.js website
--  Clone the repo `git clone https://github.com/LinaStr/Supynes.git`
+-  Clone the repo `git clone https://github.com/LinaStr/uzduotis_2_seb.git`
 
 ### Backend
 - Go to your project folder from your terminal
