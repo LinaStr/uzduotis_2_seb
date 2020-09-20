@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react"
-import {Field, Form, Formik, ErrorMessage} from "formik";
+import {Field, Form, Formik, ErrorMessage, FieldArray} from "formik";
 import ratesApi from "../../api/ratesApi";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import TextField from "@material-ui/core/TextField";
@@ -16,8 +16,10 @@ import TableContainer from "@material-ui/core/TableContainer";
 
 const useStyles = makeStyles((theme) => ({
     filterDropdown: {
-        minWidth: "400px",
         padding: theme.spacing(0, 2),
+        margin: 25,
+        width: 300,
+        height: 50,
     },
     form: {
         // display: "flex",
@@ -27,28 +29,25 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-// const createValidationSchema = Yup.object().shape({
-//     amount: Yup.number()
-//         .typeError('Must be a number')
-//         .min(0.01, 'Amount must be bigger than 0.01')
-//         .required('Amount is required'),
-//     currencyFrom: Yup.string()
-//         .required('Required'),
-//     currencyTo: Yup.string()
-//         .required('Required')
-// })
+const formValidationSchema = Yup.object().shape({
+    amount: Yup.number()
+        .typeError('Must be a number')
+        .min(0.01, 'Amount must be bigger than 0.01')
+        .required('Amount is required'),
+    // ccyFrom: Yup.string()
+    //     .required('Required'),
+    // ccyTo: Yup.string()
+    //     .required('Required')
+})
 
 
 export default () => {
     const classes = useStyles();
 
     const [initialState] = useState({
-        ccyFrom: null,
-        rateFrom: null,
-        ccyTo: null,
-        rateTo: null,
-        amount: null,
-        calculatedAmount: null,
+        ccyFrom: '',
+        ccyTo: '',
+        amount: '',
     });
     const [availableCcy, setAvailableCcy] = useState({content: [],});
 
@@ -56,8 +55,7 @@ export default () => {
     const [ccyFrom, setCcyFrom] = React.useState(null);
     const [ccyTo, setCcyTo] = React.useState(null);
     const [amount, setAmount] = React.useState(null);
-    const [exchangeTable, setExchangeTable] = useState({content: []});
-
+    const [exchangeTable, setExchangeTable] = useState({});
 
 
     useEffect(() => {
@@ -68,55 +66,29 @@ export default () => {
     return (
         <Container maxWidth="lg">
             <Formik
+                enableReinitialize={true}
                 initialValues={initialState}
-                // validate={values => {
-                //     const errors = {};
-                //
-                //     if (!values.currencyFrom) {
-                //         errors.currencyFrom = 'Required!';
-                //     }
-                //
-                //     if (!values.currencyFrom) {
-                //         errors.currencyFrom = 'Required!'
-                //     }
-                //
-                //     if (!values.amount) {
-                //         errors.amount = 'Required!'
-                //     } else if (isNaN(values.price)) {
-                //         errors.amount = 'Must be a number';
-                //     } else if (values.price < 0.01) {
-                //         errors.amount = 'Must be bigger than 0.00'
-                //     }
-                //
-                //     return errors;
-                // }}
+                validationSchema={formValidationSchema}
                 onSubmit={values => {
-                    ratesApi.fetchExchangeCalculation(ccyFrom, ccyTo, amount)
+                    ratesApi.fetchExchangeCalculation(ccyFrom, ccyTo, values.amount)
                         .then(resp => setExchangeTable(resp.data));
                 }}
             >
-                {(props) => (
+                {({ errors}) => (
                     <Form>
                         <div className={classes.form}>
-                            {/*<Field*/}
-                            {/*    label="Amount"*/}
-                            {/*    name="amount"*/}
-                            {/*    type="text"*/}
-                            {/*    component={TextField}*/}
-                            {/*    style={{width: 300}}*/}
-                            {/*    variant="outlined"*/}
-                            {/*    // onChange={(event: any, newValue: string | null) => {*/}
-                            {/*    //     setAmount(newValue);*/}
-                            {/*    // }}*/}
-                            {/*    renderInput={(params) => <TextField {...params} label="Amount" variant="outlined"/>}*/}
-                            {/*/>*/}
-                            {/*<ErrorMessage className="error" name="amount"/>*/}
-                            <Field label="Amount" name="amount" type="text" component={TextField} variant="outlined"
-                                   onChange={(event: any, newValue: string | null) => {
-                                       setAmount(newValue);
-                                   }}/>
+                            <h3> Amount:
+                            <Field
+                                className={classes.filterDropdown}
+                                max_length={2}
+                                label="Amount"
+                                name="amount"
+                                type="text"
+                                variant="outlined"
+                            />
+                            <ErrorMessage className="error" name="amount" component="div" />
+                            </h3>
                             <Autocomplete
-                                style={{width: 300}}
                                 className={classes.filterDropdown}
                                 options={availableCcy}
                                 value={ccyFrom}
@@ -125,9 +97,8 @@ export default () => {
                                 }}
                                 renderInput={(params) => <TextField {...params} label="Ccy from" variant="outlined"/>}
                             />
-                            {/*<ErrorMessage className="error" name="ccyFrom"/>*/}
+                            {/*<ErrorMessage className="error" name="ccyFrom" component="div"/>*/}
                             <Autocomplete
-                                style={{width: 300}}
                                 className={classes.filterDropdown}
                                 options={availableCcy}
                                 value={ccyTo}
@@ -136,11 +107,10 @@ export default () => {
                                 }}
                                 renderInput={(params) => <TextField {...params} label="Ccy To" variant="outlined"/>}
                             />
-                            {/*<ErrorMessage className="error" name="ccyFrom"/>*/}
+                            {/*<ErrorMessage className="error" name="ccyTo" component="div"/>*/}
                         </div>
                         <div className={classes.form}>
                             <Button variant="contained" color="primary" type="submit">Calculate</Button>
-
                         </div>
                     </Form>
 
@@ -152,24 +122,21 @@ export default () => {
                     <TableHead>
                         <TableRow>
                             <TableCell>Currency From</TableCell>
-                            <TableCell>Rate</TableCell>
-                            <TableCell>Currency From</TableCell>
-                            <TableCell>Rate</TableCell>
-                            <TableCell>Calculated rate</TableCell>
+                            <TableCell>Rate from (to EUR)</TableCell>
+                            <TableCell>Currency To</TableCell>
+                            <TableCell>Rate to (to EUR)</TableCell>
+                            <TableCell>Calculated amount</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>{
-                        exchangeTable.content.map(calculation => (
-                                    <TableRow key={calculation.ccyFrom}>
-                                        <TableCell>{calculation.ccyFrom}</TableCell>
-                                        <TableCell>{calculation.rateFrom}</TableCell>
-                                        <TableCell>{calculation.ccyTo}</TableCell>
-                                        <TableCell>{calculation.rateTo}</TableCell>
-                                        <TableCell>{calculation.calculatedAmount}</TableCell>
-                                    </TableRow>
-                                ))
-
-                        }
+                        <TableRow key={exchangeTable.ccyFrom}>
+                            <TableCell>{exchangeTable.ccyFrom}</TableCell>
+                            <TableCell>{exchangeTable.rateFrom}</TableCell>
+                            <TableCell>{exchangeTable.ccyTo}</TableCell>
+                            <TableCell>{exchangeTable.rateTo}</TableCell>
+                            <TableCell>{exchangeTable.calculatedAmount}</TableCell>
+                        </TableRow>
+                    }
                     </TableBody>
                 </Table>
             </TableContainer>

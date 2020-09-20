@@ -117,7 +117,7 @@ export default () => {
                     <TableHead>
                         <TableRow>
                             <TableCell>Currency</TableCell>
-                            <TableCell>Rate</TableCell>
+                            <TableCell>Rate (to EUR)</TableCell>
                             <TableCell>Rate registration date</TableCell>
                         </TableRow>
                     </TableHead>

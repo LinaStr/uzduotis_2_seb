@@ -14,6 +14,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 
@@ -87,14 +88,25 @@ return currencies;
 
     public ExchangeCalculation calculateExchangeRate(String ccyFrom, String ccyTo, BigDecimal amount) {
         ExchangeCalculation exchangeCalculation = new ExchangeCalculation();
-        BigDecimal rateFrom = exchangeRateRepository.findFirstByCurrencyOrderByDateDesc(ccyFrom).getRate();
-        BigDecimal rateTo = exchangeRateRepository.findFirstByCurrencyOrderByDateDesc(ccyTo).getRate();
-        BigDecimal calculatedAmount = (amount.divide(rateFrom).multiply(rateTo));
+
+        ExchangeRate exchangeRateFrom = exchangeRateRepository.findFirstByCurrencyOrderByDateDesc(ccyFrom);
+        if (exchangeRateFrom == null) {
+            throw new ExchangeRateNotFoundException("Currency rate from not found");
+        }
+        BigDecimal rateFrom = exchangeRateFrom.getRate();
+
+        ExchangeRate exchangeRateTo = exchangeRateRepository.findFirstByCurrencyOrderByDateDesc(ccyTo);
+        if (exchangeRateTo == null) {
+            throw new ExchangeRateNotFoundException("Currency rate to not found");
+        }
+        BigDecimal rateTo = exchangeRateTo.getRate();
+
+        BigDecimal calculatedAmount = (amount.multiply(rateTo).divide(rateFrom, RoundingMode.HALF_UP));
 
         exchangeCalculation.setCcyFrom(ccyFrom);
         exchangeCalculation.setRateFrom(rateFrom);
         exchangeCalculation.setCcyTo(ccyTo);
-        exchangeCalculation.setRateFrom(rateTo);
+        exchangeCalculation.setRateTo(rateTo);
         exchangeCalculation.setCalculatedAmount(calculatedAmount);
 
         return exchangeCalculation;
