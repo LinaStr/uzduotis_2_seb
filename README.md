@@ -1,8 +1,8 @@
 # uzduotis_2_seb
 
-Kind of blog application using spring, react and google maps api.
+Kind of blog application using spring, react.
 
-This project is under development. Exchange rates are displayed, but function to calculate from one currency to another is not working. Also no exceptions, validation, tests are added.
+This project is under development. Exchange rates are displayed, function to calculate from one currency to another. 
 
 ### Technology Stack
 Component         | Technology
