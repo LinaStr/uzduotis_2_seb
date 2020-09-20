@@ -1,6 +1,6 @@
 # uzduotis_2_seb
 
-Kind of blog application using spring, react.
+Exchange rate view application using spring, react. Rates are loaded from Lietuvos Bankas.
 
 This project is under development. Exchange rates are displayed, function to calculate from one currency to another. 
 
